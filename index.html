@@ -380,42 +380,23 @@ function updateCalc() {
   document.getElementById('r-bigsave').textContent = "£" + best.saving.toLocaleString("en-GB", {maximumFractionDigits:2});
 
   // Monthly saving
-  var monthlySave = Math.round(best.saving / MONTHS * 10) / 10;
+  var monthlySave = Math.round(best.saving / MONTHS * 100) / 100;
   document.getElementById('r-monthly-save').textContent = fm(monthlySave);
 
-  // Savings breakdown — framed as "what you're getting" not "how we calculated it"
+  // Savings breakdown
   var bdHTML = '<div style="color:#bbb;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:14px">How your savings break down</div>';
   var rows = [];
 
   // £0 JF for both
   rows.push(["No joining fees (normally £50 each)", "£100"]);
 
-  // 1 free month each — use their deal rates, not standard
-  var freeMonthVal = best.primaryRate + best.plus1Rate;
+  // 1 free month each — use their NORMAL individual rates
+  var freeMonthVal = best.normalA + best.normalB;
   rows.push(["First month free for both of you", fm(freeMonthVal)]);
 
-  // Couples discount (30% off one membership × 11 months)
-  var plus1Base = (best.primaryDiscRate !== null && best.primaryDiscRate < best.plus1OwnRate)
-    ? best.primaryDiscRate : best.plus1OwnRate;
-  var couplesDiscount = plus1Base * PD * PAYING;
+  // Couples discount — single line capturing full rate difference (price match + 30% off combined)
+  var couplesDiscount = (best.normalB - best.plus1Rate) * PAYING;
   rows.push(["Couples discount × 11 months", fm(couplesDiscount)]);
-
-  // If a workplace discount is pulling down the price, show that too
-  var hasWorkplaceDiscount = (best.primaryDiscRate !== null);
-  if (hasWorkplaceDiscount) {
-    // Total workplace saving = the discount on primary rate + any price-match benefit on the second
-    var primaryAgeRate = Math.max(best.normalA, best.normalB); // the one who became primary
-    var workplaceSaveOnPrimary = 0;
-    // Primary's own rate vs their age rate
-    if (best.primaryRate < AGE_RATES[best.primaryRate === getRate(p1) ? p1.age : p2.age]) {
-      // This gets complicated — simpler to just show the total workplace benefit
-    }
-    // Price match saving on the second person
-    if (best.primaryDiscRate < best.plus1OwnRate) {
-      var matchSave = (best.plus1OwnRate - best.primaryDiscRate) * PAYING;
-      rows.push([best.primaryDiscLabel + " discount shared across both memberships × 11 months", fm(matchSave)]);
-    }
-  }
 
   rows.forEach(function(r, i) {
     bdHTML += '<div class="bd-row" style="' + (i===rows.length-1?'border-bottom:none':'') + '"><span style="color:#666;font-size:14px">' + r[0] + '</span><span class="bd-val">' + r[1] + '</span></div>';
